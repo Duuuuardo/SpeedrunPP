@@ -3,7 +3,10 @@ name: Build & Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -19,7 +22,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.8'
+          gradle-version: "8.8"
 
       - name: Build
         run: gradle build
