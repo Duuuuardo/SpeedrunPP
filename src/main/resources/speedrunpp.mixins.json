@@ -1,15 +1,9 @@
 {
-    "required": true,
-    "minVersion": "0.8",
-    "package": "com.speedrunpp.mixin",
-    "compatibilityLevel": "JAVA_21",
-    "mixins": [
-        "PlayerMovementMixin"
-    ],
-    "client": [
-        "InventoryScreenMixin"
-    ],
-    "injectors": {
-        "defaultRequire": 1
-    }
+  "required": true,
+  "package": "com.speedrunpp.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": ["PlayerMovementMixin"],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

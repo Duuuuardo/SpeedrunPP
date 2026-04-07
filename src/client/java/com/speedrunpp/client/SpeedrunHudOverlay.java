@@ -1,11 +1,11 @@
 package com.speedrunpp.client;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.network.chat.Component;
 
 public class SpeedrunHudOverlay implements HudRenderCallback {
 
@@ -16,12 +16,12 @@ public class SpeedrunHudOverlay implements HudRenderCallback {
     private static final int BG_COLOR = 0x88000000;
 
     @Override
-    public void onHudRender(DrawContext drawContext, RenderTickCounter tickCounter) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null || client.options.hudHidden) return;
+    public void onHudRender(GuiGraphics guiGraphics, DeltaTracker tickCounter) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.player == null || client.options.hideGui) return;
 
-        TextRenderer textRenderer = client.textRenderer;
-        int screenWidth = client.getWindow().getScaledWidth();
+        Font font = client.font;
+        int screenWidth = client.getWindow().getGuiScaledWidth();
 
         boolean started = SpeedrunClientState.isStarted();
         boolean paused = SpeedrunClientState.isPaused();
@@ -44,12 +44,12 @@ public class SpeedrunHudOverlay implements HudRenderCallback {
         }
 
         String fullTimerText = statusPrefix + timeStr;
-        int timerWidth = textRenderer.getWidth(fullTimerText);
+        int timerWidth = font.width(fullTimerText);
         int timerX = (screenWidth - timerWidth) / 2;
         int timerY = 6;
 
         int bgPadding = 4;
-        drawContext.fill(
+        guiGraphics.fill(
                 timerX - bgPadding,
                 timerY - bgPadding,
                 timerX + timerWidth + bgPadding,
@@ -57,16 +57,16 @@ public class SpeedrunHudOverlay implements HudRenderCallback {
                 BG_COLOR
         );
 
-        drawContext.drawText(textRenderer, fullTimerText, timerX, timerY, timerColor, true);
+        guiGraphics.drawString(font, fullTimerText, timerX, timerY, timerColor, true);
 
         if (started) {
             int day = SpeedrunClientState.getDays();
-            String dayText = Text.translatable("speedrunpp.hud.day", day + 1).getString();
-            int dayWidth = textRenderer.getWidth(dayText);
+            String dayText = Component.translatable("speedrunpp.hud.day", day + 1).getString();
+            int dayWidth = font.width(dayText);
             int dayX = (screenWidth - dayWidth) / 2;
             int dayY = timerY + 9 + bgPadding + 2;
 
-            drawContext.fill(
+            guiGraphics.fill(
                     dayX - bgPadding,
                     dayY - 2,
                     dayX + dayWidth + bgPadding,
@@ -74,12 +74,12 @@ public class SpeedrunHudOverlay implements HudRenderCallback {
                     BG_COLOR
             );
 
-            drawContext.drawText(textRenderer, dayText, dayX, dayY, DAY_COLOR, true);
+            guiGraphics.drawString(font, dayText, dayX, dayY, DAY_COLOR, true);
         }
 
         if (!started) {
-            String waitingText = Text.translatable("speedrunpp.hud.waiting").getString();
-            int waitWidth = textRenderer.getWidth(waitingText);
+            String waitingText = Component.translatable("speedrunpp.hud.waiting").getString();
+            int waitWidth = font.width(waitingText);
             int waitX = (screenWidth - waitWidth) / 2;
             int waitY = timerY + 9 + bgPadding + 4;
 
@@ -87,15 +87,15 @@ public class SpeedrunHudOverlay implements HudRenderCallback {
             int alpha = (int) (255 * pulse);
             int pulseColor = (alpha << 24) | 0xFFAA00;
 
-            drawContext.drawText(textRenderer, waitingText, waitX, waitY, pulseColor, true);
+            guiGraphics.drawString(font, waitingText, waitX, waitY, pulseColor, true);
         } else if (paused) {
-            String pausedText = Text.translatable("speedrunpp.hud.paused").getString();
-            int pauseWidth = textRenderer.getWidth(pausedText);
+            String pausedText = Component.translatable("speedrunpp.hud.paused").getString();
+            int pauseWidth = font.width(pausedText);
             int pauseX = (screenWidth - pauseWidth) / 2;
             int pauseY = timerY + 9 + bgPadding + 16;
 
             if ((System.currentTimeMillis() / 700) % 2 == 0) {
-                drawContext.drawText(textRenderer, pausedText, pauseX, pauseY, TIMER_PAUSED_COLOR, true);
+                guiGraphics.drawString(font, pausedText, pauseX, pauseY, TIMER_PAUSED_COLOR, true);
             }
         }
     }

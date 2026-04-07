@@ -6,9 +6,9 @@ import com.speedrunpp.network.payload.SpeedrunActionC2SPayload;
 import com.speedrunpp.network.payload.SpeedrunSyncS2CPayload;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,45 +16,43 @@ import java.util.List;
 public class SpeedrunNetworking {
 
     public static void registerPayloads() {
-        PayloadTypeRegistry.playC2S().register(SpeedrunActionC2SPayload.ID, SpeedrunActionC2SPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(SpeedrunSyncS2CPayload.ID, SpeedrunSyncS2CPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(PlayerPositionS2CPayload.ID, PlayerPositionS2CPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(SpeedrunActionC2SPayload.ID, SpeedrunActionC2SPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(SpeedrunSyncS2CPayload.ID, SpeedrunSyncS2CPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(PlayerPositionS2CPayload.ID, PlayerPositionS2CPayload.CODEC);
     }
 
     public static void registerServerReceivers() {
         ServerPlayNetworking.registerGlobalReceiver(SpeedrunActionC2SPayload.ID, (payload, context) -> {
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
             MinecraftServer server = player.getServer();
             if (server == null) return;
 
-            server.execute(() -> {
-                SpeedrunState state = SpeedrunState.get(server);
+            SpeedrunState state = SpeedrunState.get(server);
 
-                switch (payload.action()) {
-                    case SpeedrunActionC2SPayload.ACTION_START -> {
-                        if (!state.isStarted()) {
-                            state.start(server);
-                            broadcastMessage(server, Text.translatable("speedrunpp.toast.started"));
-                        }
-                    }
-                    case SpeedrunActionC2SPayload.ACTION_PAUSE -> {
-                        if (state.isStarted() && !state.isPaused()) {
-                            state.pause(server);
-                            broadcastMessage(server, Text.translatable("speedrunpp.toast.paused"));
-                        }
-                    }
-                    case SpeedrunActionC2SPayload.ACTION_RESUME -> {
-                        if (state.isStarted() && state.isPaused()) {
-                            state.resume(server);
-                            broadcastMessage(server, Text.translatable("speedrunpp.toast.resumed"));
-                        }
-                    }
-                    case SpeedrunActionC2SPayload.ACTION_RESET -> {
-                        state.reset(server);
-                        broadcastMessage(server, Text.translatable("speedrunpp.toast.reset"));
+            switch (payload.action()) {
+                case SpeedrunActionC2SPayload.ACTION_START -> {
+                    if (!state.isStarted()) {
+                        state.start(server);
+                        broadcastMessage(server, Component.translatable("speedrunpp.toast.started"));
                     }
                 }
-            });
+                case SpeedrunActionC2SPayload.ACTION_PAUSE -> {
+                    if (state.isStarted() && !state.isPaused()) {
+                        state.pause(server);
+                        broadcastMessage(server, Component.translatable("speedrunpp.toast.paused"));
+                    }
+                }
+                case SpeedrunActionC2SPayload.ACTION_RESUME -> {
+                    if (state.isStarted() && state.isPaused()) {
+                        state.resume(server);
+                        broadcastMessage(server, Component.translatable("speedrunpp.toast.resumed"));
+                    }
+                }
+                case SpeedrunActionC2SPayload.ACTION_RESET -> {
+                    state.reset(server);
+                    broadcastMessage(server, Component.translatable("speedrunpp.toast.reset"));
+                }
+            }
         });
     }
 
@@ -67,12 +65,12 @@ public class SpeedrunNetworking {
                 state.getDays(server)
         );
 
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             ServerPlayNetworking.send(player, payload);
         }
     }
 
-    public static void syncStateToPlayer(ServerPlayerEntity player) {
+    public static void syncStateToPlayer(ServerPlayer player) {
         MinecraftServer server = player.getServer();
         if (server == null) return;
 
@@ -87,11 +85,11 @@ public class SpeedrunNetworking {
     }
 
     public static void syncPlayerPositions(MinecraftServer server) {
-        List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
+        List<ServerPlayer> players = server.getPlayerList().getPlayers();
 
-        for (ServerPlayerEntity receiver : players) {
+        for (ServerPlayer receiver : players) {
             List<PlayerPositionData> positions = new ArrayList<>();
-            for (ServerPlayerEntity other : players) {
+            for (ServerPlayer other : players) {
                 if (other == receiver) continue;
                 positions.add(new PlayerPositionData(
                         other.getName().getString(),
@@ -107,9 +105,9 @@ public class SpeedrunNetworking {
         }
     }
 
-    private static void broadcastMessage(MinecraftServer server, Text message) {
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            player.sendMessage(message, true);
+    private static void broadcastMessage(MinecraftServer server, Component message) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            player.displayClientMessage(message, true);
         }
     }
 }

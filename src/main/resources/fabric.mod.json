@@ -1,23 +1,29 @@
 {
-    "schemaVersion": 1,
-    "id": "speedrunpp",
-    "version": "${version}",
-    "name": "Speedrun++",
-    "description": "A multiplayer speedrun timer mod with player tracking compass, world freeze, and inventory controls.",
-    "authors": ["SpeedrunPP Team"],
-    "contact": {},
-    "license": "MIT",
-    "icon": "assets/speedrunpp/icon.png",
-    "environment": "*",
-    "entrypoints": {
-        "main": ["com.speedrunpp.SpeedrunMod"],
-        "client": ["com.speedrunpp.client.SpeedrunModClient"]
-    },
-    "mixins": ["speedrunpp.mixins.json"],
-    "depends": {
-        "fabricloader": ">=0.16.0",
-        "minecraft": "~1.21.1",
-        "java": ">=21",
-        "fabric-api": "*"
+  "schemaVersion": 1,
+  "id": "speedrunpp",
+  "version": "${version}",
+  "name": "Speedrun++",
+  "description": "A multiplayer speedrun timer mod with player tracking compass, world freeze, and inventory controls.",
+  "authors": ["SpeedrunPP Team"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/speedrunpp/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.speedrunpp.SpeedrunMod"],
+    "client": ["com.speedrunpp.client.SpeedrunModClient"]
+  },
+  "mixins": [
+    "speedrunpp.mixins.json",
+    {
+      "config": "speedrunpp.client.mixins.json",
+      "environment": "client"
     }
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.6",
+    "minecraft": "~26.1.1",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
 }

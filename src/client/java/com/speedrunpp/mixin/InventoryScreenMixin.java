@@ -3,10 +3,13 @@ package com.speedrunpp.mixin;
 import com.speedrunpp.client.SpeedrunClientState;
 import com.speedrunpp.network.payload.SpeedrunActionC2SPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.InventoryMenu;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,16 +17,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(InventoryScreen.class)
-public abstract class InventoryScreenMixin extends net.minecraft.client.gui.screen.ingame.HandledScreen<net.minecraft.screen.PlayerScreenHandler> {
+public abstract class InventoryScreenMixin extends AbstractContainerScreen<InventoryMenu> {
 
     @Unique
-    private ButtonWidget startButton;
+    private Button startButton;
     @Unique
-    private ButtonWidget pauseButton;
+    private Button pauseButton;
     @Unique
-    private ButtonWidget resumeButton;
+    private Button resumeButton;
     @Unique
-    private ButtonWidget resetButton;
+    private Button resetButton;
 
     private InventoryScreenMixin() {
         super(null, null, null);
@@ -33,51 +36,51 @@ public abstract class InventoryScreenMixin extends net.minecraft.client.gui.scre
     private void speedrunpp$addButtons(CallbackInfo ci) {
         int buttonWidth = 70;
         int buttonHeight = 20;
-        int startX = this.x + this.backgroundWidth + 4;
-        int startY = this.y + 4;
+        int startX = this.leftPos + this.imageWidth + 4;
+        int startY = this.topPos + 4;
         int gap = 24;
 
-        startButton = ButtonWidget.builder(
-                        Text.translatable("speedrunpp.button.start").formatted(Formatting.GREEN),
+        startButton = Button.builder(
+                        Component.translatable("speedrunpp.button.start").withStyle(ChatFormatting.GREEN),
                         button -> {
                             ClientPlayNetworking.send(new SpeedrunActionC2SPayload(SpeedrunActionC2SPayload.ACTION_START));
                         })
-                .dimensions(startX, startY, buttonWidth, buttonHeight)
+                .bounds(startX, startY, buttonWidth, buttonHeight)
                 .build();
-        this.addDrawableChild(startButton);
+        this.addRenderableWidget(startButton);
 
-        pauseButton = ButtonWidget.builder(
-                        Text.translatable("speedrunpp.button.pause").formatted(Formatting.YELLOW),
+        pauseButton = Button.builder(
+                        Component.translatable("speedrunpp.button.pause").withStyle(ChatFormatting.YELLOW),
                         button -> {
                             ClientPlayNetworking.send(new SpeedrunActionC2SPayload(SpeedrunActionC2SPayload.ACTION_PAUSE));
                         })
-                .dimensions(startX, startY, buttonWidth, buttonHeight)
+                .bounds(startX, startY, buttonWidth, buttonHeight)
                 .build();
-        this.addDrawableChild(pauseButton);
+        this.addRenderableWidget(pauseButton);
 
-        resumeButton = ButtonWidget.builder(
-                        Text.translatable("speedrunpp.button.resume").formatted(Formatting.GREEN),
+        resumeButton = Button.builder(
+                        Component.translatable("speedrunpp.button.resume").withStyle(ChatFormatting.GREEN),
                         button -> {
                             ClientPlayNetworking.send(new SpeedrunActionC2SPayload(SpeedrunActionC2SPayload.ACTION_RESUME));
                         })
-                .dimensions(startX, startY, buttonWidth, buttonHeight)
+                .bounds(startX, startY, buttonWidth, buttonHeight)
                 .build();
-        this.addDrawableChild(resumeButton);
+        this.addRenderableWidget(resumeButton);
 
-        resetButton = ButtonWidget.builder(
-                        Text.translatable("speedrunpp.button.reset").formatted(Formatting.RED),
+        resetButton = Button.builder(
+                        Component.translatable("speedrunpp.button.reset").withStyle(ChatFormatting.RED),
                         button -> {
                             ClientPlayNetworking.send(new SpeedrunActionC2SPayload(SpeedrunActionC2SPayload.ACTION_RESET));
                         })
-                .dimensions(startX, startY + gap, buttonWidth, buttonHeight)
+                .bounds(startX, startY + gap, buttonWidth, buttonHeight)
                 .build();
-        this.addDrawableChild(resetButton);
+        this.addRenderableWidget(resetButton);
 
         speedrunpp$updateButtonVisibility();
     }
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void speedrunpp$updateButtons(net.minecraft.client.gui.DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    private void speedrunpp$updateButtons(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         speedrunpp$updateButtonVisibility();
     }
 

@@ -6,7 +6,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +25,7 @@ public class SpeedrunMod implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(this::onServerTick);
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            ServerPlayerEntity player = handler.getPlayer();
+            ServerPlayer player = handler.player;
             SpeedrunState state = SpeedrunState.get(server);
             SpeedrunNetworking.syncStateToPlayer(player);
 
@@ -34,7 +34,7 @@ public class SpeedrunMod implements ModInitializer {
         });
 
         ServerTickEvents.START_SERVER_TICK.register(server -> {
-            if (server.getTicks() == 1) {
+            if (server.getTickCount() == 1) {
                 SpeedrunState state = SpeedrunState.get(server);
                 if (!state.isRunning()) {
                     state.reset(server);
@@ -57,10 +57,10 @@ public class SpeedrunMod implements ModInitializer {
         }
 
         if (!state.isRunning()) {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                if (player.getVelocity().lengthSquared() > 0.001) {
-                    player.setVelocity(0, 0, 0);
-                    player.velocityModified = true;
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                if (player.getDeltaMovement().lengthSqr() > 0.001) {
+                    player.setDeltaMovement(0, 0, 0);
+                    player.hurtMarked = true;
                 }
             }
         }

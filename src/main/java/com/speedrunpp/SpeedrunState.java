@@ -1,18 +1,18 @@
 package com.speedrunpp;
 
 import com.speedrunpp.network.SpeedrunNetworking;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.PersistentState;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class SpeedrunState extends PersistentState {
+public class SpeedrunState extends SavedData {
     private boolean started = false;
     private boolean paused = false;
     private long startTick = 0;
@@ -25,31 +25,31 @@ public class SpeedrunState extends PersistentState {
     }
 
     public static SpeedrunState get(MinecraftServer server) {
-        ServerWorld world = server.getOverworld();
-        return world.getPersistentStateManager().getOrCreate(
-                new Type<>(SpeedrunState::new, SpeedrunState::fromNbt, null),
+        ServerLevel level = server.overworld();
+        return level.getDataStorage().computeIfAbsent(
+                new SavedData.Factory<>(SpeedrunState::new, SpeedrunState::load),
                 "speedrunpp_state"
         );
     }
 
-    public static SpeedrunState fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+    public static SpeedrunState load(CompoundTag tag, HolderLookup.Provider registries) {
         SpeedrunState state = new SpeedrunState();
-        state.started = nbt.getBoolean("started");
-        state.paused = nbt.getBoolean("paused");
-        state.startTick = nbt.getLong("startTick");
-        state.totalPausedTicks = nbt.getLong("totalPausedTicks");
-        state.pauseStartTick = nbt.getLong("pauseStartTick");
+        state.started = tag.getBoolean("started");
+        state.paused = tag.getBoolean("paused");
+        state.startTick = tag.getLong("startTick");
+        state.totalPausedTicks = tag.getLong("totalPausedTicks");
+        state.pauseStartTick = tag.getLong("pauseStartTick");
         return state;
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        nbt.putBoolean("started", started);
-        nbt.putBoolean("paused", paused);
-        nbt.putLong("startTick", startTick);
-        nbt.putLong("totalPausedTicks", totalPausedTicks);
-        nbt.putLong("pauseStartTick", pauseStartTick);
-        return nbt;
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.putBoolean("started", started);
+        tag.putBoolean("paused", paused);
+        tag.putLong("startTick", startTick);
+        tag.putLong("totalPausedTicks", totalPausedTicks);
+        tag.putLong("pauseStartTick", pauseStartTick);
+        return tag;
     }
 
     public boolean isStarted() {
@@ -66,7 +66,7 @@ public class SpeedrunState extends PersistentState {
 
     public long getElapsedTicks(MinecraftServer server) {
         if (!started) return 0;
-        long currentTick = server.getOverworld().getTime();
+        long currentTick = server.overworld().getGameTime();
         if (paused) {
             return pauseStartTick - startTick - totalPausedTicks;
         }
@@ -82,31 +82,31 @@ public class SpeedrunState extends PersistentState {
         if (started) return;
         started = true;
         paused = false;
-        startTick = server.getOverworld().getTime();
+        startTick = server.overworld().getGameTime();
         totalPausedTicks = 0;
         pauseStartTick = 0;
         setWorldFrozen(server, false);
-        markDirty();
+        setDirty();
         SpeedrunNetworking.syncStateToAll(server);
     }
 
     public void pause(MinecraftServer server) {
         if (!started || paused) return;
         paused = true;
-        pauseStartTick = server.getOverworld().getTime();
+        pauseStartTick = server.overworld().getGameTime();
         setWorldFrozen(server, true);
-        markDirty();
+        setDirty();
         SpeedrunNetworking.syncStateToAll(server);
     }
 
     public void resume(MinecraftServer server) {
         if (!started || !paused) return;
-        long currentTick = server.getOverworld().getTime();
+        long currentTick = server.overworld().getGameTime();
         totalPausedTicks += (currentTick - pauseStartTick);
         paused = false;
         pauseStartTick = 0;
         setWorldFrozen(server, false);
-        markDirty();
+        setDirty();
         SpeedrunNetworking.syncStateToAll(server);
     }
 
@@ -118,17 +118,17 @@ public class SpeedrunState extends PersistentState {
         pauseStartTick = 0;
         trackerTargets.clear();
         setWorldFrozen(server, true);
-        markDirty();
+        setDirty();
         SpeedrunNetworking.syncStateToAll(server);
     }
 
     private void setWorldFrozen(MinecraftServer server, boolean frozen) {
         GameRules gameRules = server.getGameRules();
-        gameRules.get(GameRules.DO_DAYLIGHT_CYCLE).set(!frozen, server);
-        gameRules.get(GameRules.DO_MOB_SPAWNING).set(!frozen, server);
-        gameRules.get(GameRules.DO_FIRE_TICK).set(!frozen, server);
-        gameRules.get(GameRules.DO_WEATHER_CYCLE).set(!frozen, server);
-        gameRules.get(GameRules.RANDOM_TICK_SPEED).set(frozen ? 0 : 3, server);
+        gameRules.getRule(GameRules.RULE_DAYLIGHT).set(!frozen, server);
+        gameRules.getRule(GameRules.RULE_DOMOBSPAWNING).set(!frozen, server);
+        gameRules.getRule(GameRules.RULE_DOFIRETICK).set(!frozen, server);
+        gameRules.getRule(GameRules.RULE_WEATHER_CYCLE).set(!frozen, server);
+        gameRules.getRule(GameRules.RULE_RANDOMTICKING).set(frozen ? 0 : 3, server);
     }
 
     public UUID getTrackerTarget(UUID playerUuid) {

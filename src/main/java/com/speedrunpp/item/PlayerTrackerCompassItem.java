@@ -1,57 +1,55 @@
 package com.speedrunpp.item;
 
 import com.speedrunpp.SpeedrunState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.UUID;
 
 public class PlayerTrackerCompassItem extends Item {
 
-    public PlayerTrackerCompassItem(Settings settings) {
-        super(settings);
+    public PlayerTrackerCompassItem(Properties properties) {
+        super(properties);
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        ItemStack stack = user.getStackInHand(hand);
-
-        if (!world.isClient && user instanceof ServerPlayerEntity serverPlayer) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             MinecraftServer server = serverPlayer.getServer();
-            if (server == null) return TypedActionResult.pass(stack);
+            if (server == null) return InteractionResult.PASS;
 
             SpeedrunState state = SpeedrunState.get(server);
-            List<ServerPlayerEntity> onlinePlayers = server.getPlayerManager().getPlayerList()
+            List<ServerPlayer> onlinePlayers = server.getPlayerList().getPlayers()
                     .stream()
                     .filter(p -> p != serverPlayer)
                     .toList();
 
             if (onlinePlayers.isEmpty()) {
-                serverPlayer.sendMessage(
-                        Text.translatable("item.speedrunpp.player_tracker.no_players")
-                                .formatted(Formatting.RED),
+                serverPlayer.displayClientMessage(
+                        Component.translatable("item.speedrunpp.player_tracker.no_players")
+                                .withStyle(ChatFormatting.RED),
                         true
                 );
-                return TypedActionResult.fail(stack);
+                return InteractionResult.FAIL;
             }
 
-            UUID currentTarget = state.getTrackerTarget(serverPlayer.getUuid());
+            UUID currentTarget = state.getTrackerTarget(serverPlayer.getUUID());
             int currentIndex = -1;
 
             if (currentTarget != null) {
                 for (int i = 0; i < onlinePlayers.size(); i++) {
-                    if (onlinePlayers.get(i).getUuid().equals(currentTarget)) {
+                    if (onlinePlayers.get(i).getUUID().equals(currentTarget)) {
                         currentIndex = i;
                         break;
                     }
@@ -59,40 +57,40 @@ public class PlayerTrackerCompassItem extends Item {
             }
 
             int nextIndex = (currentIndex + 1) % onlinePlayers.size();
-            ServerPlayerEntity targetPlayer = onlinePlayers.get(nextIndex);
+            ServerPlayer targetPlayer = onlinePlayers.get(nextIndex);
 
-            state.setTrackerTarget(serverPlayer.getUuid(), targetPlayer.getUuid());
+            state.setTrackerTarget(serverPlayer.getUUID(), targetPlayer.getUUID());
 
-            serverPlayer.sendMessage(
-                    Text.translatable("item.speedrunpp.player_tracker.tracking",
+            serverPlayer.displayClientMessage(
+                    Component.translatable("item.speedrunpp.player_tracker.tracking",
                                     targetPlayer.getName().getString())
-                            .formatted(Formatting.AQUA, Formatting.BOLD),
+                            .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD),
                     true
             );
 
-            return TypedActionResult.success(stack);
+            return InteractionResult.SUCCESS;
         }
 
-        return TypedActionResult.success(stack);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        if (!world.isClient && entity instanceof ServerPlayerEntity player && selected) {
-            if (world.getTime() % 20 != 0) return;
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
+        if (!level.isClientSide && entity instanceof ServerPlayer player && selected) {
+            if (level.getGameTime() % 20 != 0) return;
 
             MinecraftServer server = player.getServer();
             if (server == null) return;
 
             SpeedrunState state = SpeedrunState.get(server);
-            UUID targetId = state.getTrackerTarget(player.getUuid());
+            UUID targetId = state.getTrackerTarget(player.getUUID());
             if (targetId == null) return;
 
-            ServerPlayerEntity target = server.getPlayerManager().getPlayer(targetId);
+            ServerPlayer target = server.getPlayerList().getPlayer(targetId);
             if (target == null) {
-                player.sendMessage(
-                        Text.literal("Target offline")
-                                .formatted(Formatting.GRAY, Formatting.ITALIC),
+                player.displayClientMessage(
+                        Component.literal("Target offline")
+                                .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC),
                         true
                 );
                 return;
@@ -103,20 +101,20 @@ public class PlayerTrackerCompassItem extends Item {
             double distance = Math.sqrt(dx * dx + dz * dz);
             String direction = getCardinalDirection(dx, dz);
 
-            player.sendMessage(
-                    Text.translatable("item.speedrunpp.player_tracker.direction",
+            player.displayClientMessage(
+                    Component.translatable("item.speedrunpp.player_tracker.direction",
                                     target.getName().getString(),
                                     (int) distance,
                                     direction)
-                            .formatted(Formatting.GREEN),
+                            .withStyle(ChatFormatting.GREEN),
                     true
             );
         }
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, Item.TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.translatable("item.speedrunpp.player_tracker.tooltip").formatted(Formatting.GRAY));
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag type) {
+        tooltip.add(Component.translatable("item.speedrunpp.player_tracker.tooltip").withStyle(ChatFormatting.GRAY));
     }
 
     private String getCardinalDirection(double dx, double dz) {
