@@ -1,0 +1,28 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.launch
+.settings/
+.metadata
+.classpath
+.project
+bin/
+
+# Fabric
+run/
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Java
+*.class
+hs_err_pid*

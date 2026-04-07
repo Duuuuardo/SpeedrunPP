@@ -1,0 +1,19 @@
+{
+  "item.speedrunpp.player_tracker": "Rastreador de Jogadores",
+  "item.speedrunpp.player_tracker.tooltip": "Clique direito para alternar jogador alvo",
+  "item.speedrunpp.player_tracker.tracking": "Rastreando: %s",
+  "item.speedrunpp.player_tracker.no_players": "Nenhum outro jogador online",
+  "item.speedrunpp.player_tracker.direction": "%s | %dm %s",
+  "speedrunpp.hud.waiting": "Aguardando Inicio...",
+  "speedrunpp.hud.paused": "PAUSADO",
+  "speedrunpp.hud.day": "Dia %d",
+  "speedrunpp.button.start": "Iniciar",
+  "speedrunpp.button.pause": "Pausar",
+  "speedrunpp.button.resume": "Continuar",
+  "speedrunpp.button.reset": "Resetar",
+  "speedrunpp.toast.started": "Speedrun Iniciada!",
+  "speedrunpp.toast.paused": "Speedrun Pausada",
+  "speedrunpp.toast.resumed": "Speedrun Retomada!",
+  "speedrunpp.toast.reset": "Speedrun Resetada",
+  "itemGroup.speedrunpp": "Speedrun++"
+}

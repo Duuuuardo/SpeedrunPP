@@ -1,0 +1,19 @@
+{
+  "item.speedrunpp.player_tracker": "Player Tracker",
+  "item.speedrunpp.player_tracker.tooltip": "Right-click to cycle target player",
+  "item.speedrunpp.player_tracker.tracking": "Tracking: %s",
+  "item.speedrunpp.player_tracker.no_players": "No other players online",
+  "item.speedrunpp.player_tracker.direction": "%s | %dm %s",
+  "speedrunpp.hud.waiting": "Waiting to Start...",
+  "speedrunpp.hud.paused": "PAUSED",
+  "speedrunpp.hud.day": "Day %d",
+  "speedrunpp.button.start": "Start",
+  "speedrunpp.button.pause": "Pause",
+  "speedrunpp.button.resume": "Resume",
+  "speedrunpp.button.reset": "Reset",
+  "speedrunpp.toast.started": "Speedrun Started!",
+  "speedrunpp.toast.paused": "Speedrun Paused",
+  "speedrunpp.toast.resumed": "Speedrun Resumed!",
+  "speedrunpp.toast.reset": "Speedrun Reset",
+  "itemGroup.speedrunpp": "Speedrun++"
+}
