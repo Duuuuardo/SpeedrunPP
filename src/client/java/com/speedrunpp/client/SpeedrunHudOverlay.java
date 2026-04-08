@@ -12,6 +12,7 @@ public class SpeedrunHudOverlay implements HudElement {
     private static final int TIMER_RUNNING_COLOR = 0xFF55FF55;
     private static final int TIMER_PAUSED_COLOR = 0xFFFFAA00;
     private static final int TIMER_WAITING_COLOR = 0xFFAAAAAA;
+    private static final int TIMER_COMPLETED_COLOR = 0xFFFFD700;
     private static final int DAY_COLOR = 0xFFFFFF55;
     private static final int BG_COLOR = 0x88000000;
 
@@ -25,6 +26,7 @@ public class SpeedrunHudOverlay implements HudElement {
 
         boolean started = SpeedrunClientState.isStarted();
         boolean paused = SpeedrunClientState.isPaused();
+        boolean completed = SpeedrunClientState.isCompleted();
 
         String timeStr = SpeedrunClientState.formatTime(SpeedrunClientState.getElapsedTicks());
         int timerColor;
@@ -33,6 +35,9 @@ public class SpeedrunHudOverlay implements HudElement {
         if (!started) {
             timerColor = TIMER_WAITING_COLOR;
             timeStr = "00:00.0";
+        } else if (completed) {
+            timerColor = TIMER_COMPLETED_COLOR;
+            statusPrefix = "★ ";
         } else if (paused) {
             timerColor = TIMER_PAUSED_COLOR;
             if ((System.currentTimeMillis() / 500) % 2 == 0) {
@@ -88,6 +93,15 @@ public class SpeedrunHudOverlay implements HudElement {
             int pulseColor = (alpha << 24) | 0xFFAA00;
 
             guiGraphics.text(font, waitingText, waitX, waitY, pulseColor, true);
+        } else if (completed) {
+            String completedText = Component.translatable("speedrunpp.hud.completed").getString();
+            int completeWidth = font.width(completedText);
+            int completeX = (screenWidth - completeWidth) / 2;
+            int completeY = timerY + 9 + bgPadding + 16;
+
+            if ((System.currentTimeMillis() / 700) % 2 == 0) {
+                guiGraphics.text(font, completedText, completeX, completeY, TIMER_COMPLETED_COLOR, true);
+            }
         } else if (paused) {
             String pausedText = Component.translatable("speedrunpp.hud.paused").getString();
             int pauseWidth = font.width(pausedText);

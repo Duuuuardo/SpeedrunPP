@@ -8,6 +8,7 @@ import java.util.List;
 public class SpeedrunClientState {
     private static boolean started = false;
     private static boolean paused = false;
+    private static boolean completed = false;
     private static long elapsedTicks = 0;
     private static int days = 0;
     private static List<PlayerPositionData> playerPositions = new ArrayList<>();
@@ -23,8 +24,12 @@ public class SpeedrunClientState {
         return paused;
     }
 
+    public static boolean isCompleted() {
+        return completed;
+    }
+
     public static boolean isRunning() {
-        return started && !paused;
+        return started && !paused && !completed;
     }
 
     public static long getElapsedTicks() {
@@ -44,9 +49,10 @@ public class SpeedrunClientState {
         return playerPositions;
     }
 
-    public static void updateState(boolean started, boolean paused, long elapsedTicks, int days) {
+    public static void updateState(boolean started, boolean paused, boolean completed, long elapsedTicks, int days) {
         SpeedrunClientState.started = started;
         SpeedrunClientState.paused = paused;
+        SpeedrunClientState.completed = completed;
         SpeedrunClientState.elapsedTicks = elapsedTicks;
         SpeedrunClientState.days = days;
         SpeedrunClientState.lastSyncTime = System.currentTimeMillis();
@@ -60,6 +66,7 @@ public class SpeedrunClientState {
     public static void reset() {
         started = false;
         paused = false;
+        completed = false;
         elapsedTicks = 0;
         days = 0;
         playerPositions.clear();

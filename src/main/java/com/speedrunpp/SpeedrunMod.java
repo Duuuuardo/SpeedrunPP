@@ -3,10 +3,13 @@ package com.speedrunpp;
 import com.speedrunpp.item.ModItems;
 import com.speedrunpp.network.SpeedrunNetworking;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +41,21 @@ public class SpeedrunMod implements ModInitializer {
                 SpeedrunState state = SpeedrunState.get(server);
                 if (!state.isRunning()) {
                     state.reset(server);
+                }
+            }
+        });
+
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
+            if (entity instanceof EnderDragon) {
+                var server = entity.level().getServer();
+                if (server != null) {
+                    SpeedrunState state = SpeedrunState.get(server);
+                    if (state.isRunning()) {
+                        state.complete(server);
+                        for (var p : server.getPlayerList().getPlayers()) {
+                            p.sendSystemMessage(Component.translatable("speedrunpp.toast.completed"), true);
+                        }
+                    }
                 }
             }
         });

@@ -17,6 +17,7 @@ import java.util.UUID;
 public class SpeedrunState extends SavedData {
     private boolean started = false;
     private boolean paused = false;
+    private boolean completed = false;
     private long startTick = 0;
     private long totalPausedTicks = 0;
     private long pauseStartTick = 0;
@@ -25,13 +26,15 @@ public class SpeedrunState extends SavedData {
     public static final Codec<SpeedrunState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.BOOL.fieldOf("started").forGetter(s -> s.started),
             Codec.BOOL.fieldOf("paused").forGetter(s -> s.paused),
+            Codec.BOOL.fieldOf("completed").forGetter(s -> s.completed),
             Codec.LONG.fieldOf("startTick").forGetter(s -> s.startTick),
             Codec.LONG.fieldOf("totalPausedTicks").forGetter(s -> s.totalPausedTicks),
             Codec.LONG.fieldOf("pauseStartTick").forGetter(s -> s.pauseStartTick)
-    ).apply(instance, (started, paused, startTick, totalPausedTicks, pauseStartTick) -> {
+    ).apply(instance, (started, paused, completed, startTick, totalPausedTicks, pauseStartTick) -> {
         SpeedrunState state = new SpeedrunState();
         state.started = started;
         state.paused = paused;
+        state.completed = completed;
         state.startTick = startTick;
         state.totalPausedTicks = totalPausedTicks;
         state.pauseStartTick = pauseStartTick;
@@ -61,14 +64,18 @@ public class SpeedrunState extends SavedData {
         return paused;
     }
 
+    public boolean isCompleted() {
+        return completed;
+    }
+
     public boolean isRunning() {
-        return started && !paused;
+        return started && !paused && !completed;
     }
 
     public long getElapsedTicks(MinecraftServer server) {
         if (!started) return 0;
         long currentTick = server.overworld().getGameTime();
-        if (paused) {
+        if (paused || completed) {
             return pauseStartTick - startTick - totalPausedTicks;
         }
         return currentTick - startTick - totalPausedTicks;
@@ -83,6 +90,7 @@ public class SpeedrunState extends SavedData {
         if (started) return;
         started = true;
         paused = false;
+        completed = false;
         startTick = server.overworld().getGameTime();
         totalPausedTicks = 0;
         pauseStartTick = 0;
@@ -91,22 +99,12 @@ public class SpeedrunState extends SavedData {
         SpeedrunNetworking.syncStateToAll(server);
     }
 
-    public void pause(MinecraftServer server) {
-        if (!started || paused) return;
-        paused = true;
+    public void complete(MinecraftServer server) {
+        if (!started || completed) return;
+        completed = true;
+        paused = false;
         pauseStartTick = server.overworld().getGameTime();
         setWorldFrozen(server, true);
-        setDirty();
-        SpeedrunNetworking.syncStateToAll(server);
-    }
-
-    public void resume(MinecraftServer server) {
-        if (!started || !paused) return;
-        long currentTick = server.overworld().getGameTime();
-        totalPausedTicks += (currentTick - pauseStartTick);
-        paused = false;
-        pauseStartTick = 0;
-        setWorldFrozen(server, false);
         setDirty();
         SpeedrunNetworking.syncStateToAll(server);
     }
@@ -114,6 +112,7 @@ public class SpeedrunState extends SavedData {
     public void reset(MinecraftServer server) {
         started = false;
         paused = false;
+        completed = false;
         startTick = 0;
         totalPausedTicks = 0;
         pauseStartTick = 0;

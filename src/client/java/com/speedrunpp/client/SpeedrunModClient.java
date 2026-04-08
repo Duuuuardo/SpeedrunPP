@@ -18,6 +18,7 @@ public class SpeedrunModClient implements ClientModInitializer {
             SpeedrunClientState.updateState(
                     payload.started(),
                     payload.paused(),
+                    payload.completed(),
                     payload.elapsedTicks(),
                     payload.days()
             );

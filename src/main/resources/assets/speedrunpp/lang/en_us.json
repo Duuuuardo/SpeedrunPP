@@ -6,14 +6,14 @@
   "item.speedrunpp.player_tracker.direction": "%s | %dm %s",
   "speedrunpp.hud.waiting": "Waiting to Start...",
   "speedrunpp.hud.paused": "PAUSED",
+  "speedrunpp.hud.completed": "COMPLETED",
   "speedrunpp.hud.day": "Day %d",
   "speedrunpp.button.start": "Start",
-  "speedrunpp.button.pause": "Pause",
   "speedrunpp.button.resume": "Resume",
   "speedrunpp.button.reset": "Reset",
   "speedrunpp.toast.started": "Speedrun Started!",
-  "speedrunpp.toast.paused": "Speedrun Paused",
   "speedrunpp.toast.resumed": "Speedrun Resumed!",
   "speedrunpp.toast.reset": "Speedrun Reset",
+  "speedrunpp.toast.completed": "Speedrun Complete!",
   "itemGroup.speedrunpp": "Speedrun++"
 }

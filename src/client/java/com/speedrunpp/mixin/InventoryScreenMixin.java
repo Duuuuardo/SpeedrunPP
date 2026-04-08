@@ -22,10 +22,6 @@ public abstract class InventoryScreenMixin extends AbstractContainerScreen<Inven
     @Unique
     private Button startButton;
     @Unique
-    private Button pauseButton;
-    @Unique
-    private Button resumeButton;
-    @Unique
     private Button resetButton;
 
     private InventoryScreenMixin() {
@@ -49,24 +45,6 @@ public abstract class InventoryScreenMixin extends AbstractContainerScreen<Inven
                 .build();
         this.addRenderableWidget(startButton);
 
-        pauseButton = Button.builder(
-                        Component.translatable("speedrunpp.button.pause").withStyle(ChatFormatting.YELLOW),
-                        button -> {
-                            ClientPlayNetworking.send(new SpeedrunActionC2SPayload(SpeedrunActionC2SPayload.ACTION_PAUSE));
-                        })
-                .bounds(startX, startY, buttonWidth, buttonHeight)
-                .build();
-        this.addRenderableWidget(pauseButton);
-
-        resumeButton = Button.builder(
-                        Component.translatable("speedrunpp.button.resume").withStyle(ChatFormatting.GREEN),
-                        button -> {
-                            ClientPlayNetworking.send(new SpeedrunActionC2SPayload(SpeedrunActionC2SPayload.ACTION_RESUME));
-                        })
-                .bounds(startX, startY, buttonWidth, buttonHeight)
-                .build();
-        this.addRenderableWidget(resumeButton);
-
         resetButton = Button.builder(
                         Component.translatable("speedrunpp.button.reset").withStyle(ChatFormatting.RED),
                         button -> {
@@ -87,16 +65,9 @@ public abstract class InventoryScreenMixin extends AbstractContainerScreen<Inven
     @Unique
     private void speedrunpp$updateButtonVisibility() {
         boolean started = SpeedrunClientState.isStarted();
-        boolean paused = SpeedrunClientState.isPaused();
 
         if (startButton != null) {
             startButton.visible = !started;
-        }
-        if (pauseButton != null) {
-            pauseButton.visible = started && !paused;
-        }
-        if (resumeButton != null) {
-            resumeButton.visible = started && paused;
         }
         if (resetButton != null) {
             resetButton.visible = started;

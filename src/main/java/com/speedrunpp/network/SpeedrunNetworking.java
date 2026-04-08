@@ -35,18 +35,6 @@ public class SpeedrunNetworking {
                         broadcastMessage(server, Component.translatable("speedrunpp.toast.started"));
                     }
                 }
-                case SpeedrunActionC2SPayload.ACTION_PAUSE -> {
-                    if (state.isStarted() && !state.isPaused()) {
-                        state.pause(server);
-                        broadcastMessage(server, Component.translatable("speedrunpp.toast.paused"));
-                    }
-                }
-                case SpeedrunActionC2SPayload.ACTION_RESUME -> {
-                    if (state.isStarted() && state.isPaused()) {
-                        state.resume(server);
-                        broadcastMessage(server, Component.translatable("speedrunpp.toast.resumed"));
-                    }
-                }
                 case SpeedrunActionC2SPayload.ACTION_RESET -> {
                     state.reset(server);
                     broadcastMessage(server, Component.translatable("speedrunpp.toast.reset"));
@@ -60,6 +48,7 @@ public class SpeedrunNetworking {
         SpeedrunSyncS2CPayload payload = new SpeedrunSyncS2CPayload(
                 state.isStarted(),
                 state.isPaused(),
+                state.isCompleted(),
                 state.getElapsedTicks(server),
                 state.getDays(server)
         );
@@ -77,6 +66,7 @@ public class SpeedrunNetworking {
         SpeedrunSyncS2CPayload payload = new SpeedrunSyncS2CPayload(
                 state.isStarted(),
                 state.isPaused(),
+                state.isCompleted(),
                 state.getElapsedTicks(server),
                 state.getDays(server)
         );

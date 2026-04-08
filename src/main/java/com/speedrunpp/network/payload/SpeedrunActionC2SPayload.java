@@ -8,9 +8,7 @@ import net.minecraft.resources.Identifier;
 
 public record SpeedrunActionC2SPayload(int action) implements CustomPacketPayload {
     public static final int ACTION_START = 0;
-    public static final int ACTION_PAUSE = 1;
-    public static final int ACTION_RESUME = 2;
-    public static final int ACTION_RESET = 3;
+    public static final int ACTION_RESET = 1;
 
     public static final CustomPacketPayload.Type<SpeedrunActionC2SPayload> ID =
             new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("speedrunpp", "speedrun_action"));
