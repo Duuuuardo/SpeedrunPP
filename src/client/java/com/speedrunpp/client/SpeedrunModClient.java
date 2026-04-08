@@ -5,13 +5,14 @@ import com.speedrunpp.network.payload.SpeedrunSyncS2CPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.minecraft.resources.Identifier;
 
 public class SpeedrunModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        HudRenderCallback.EVENT.register(new SpeedrunHudOverlay());
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("speedrunpp", "hud_overlay"), new SpeedrunHudOverlay());
 
         ClientPlayNetworking.registerGlobalReceiver(SpeedrunSyncS2CPayload.ID, (payload, context) -> {
             SpeedrunClientState.updateState(

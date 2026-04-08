@@ -1,12 +1,14 @@
 package com.speedrunpp;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.speedrunpp.network.SpeedrunNetworking;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,38 +20,37 @@ public class SpeedrunState extends SavedData {
     private long startTick = 0;
     private long totalPausedTicks = 0;
     private long pauseStartTick = 0;
-
     private final Map<UUID, UUID> trackerTargets = new HashMap<>();
+
+    public static final Codec<SpeedrunState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.BOOL.fieldOf("started").forGetter(s -> s.started),
+            Codec.BOOL.fieldOf("paused").forGetter(s -> s.paused),
+            Codec.LONG.fieldOf("startTick").forGetter(s -> s.startTick),
+            Codec.LONG.fieldOf("totalPausedTicks").forGetter(s -> s.totalPausedTicks),
+            Codec.LONG.fieldOf("pauseStartTick").forGetter(s -> s.pauseStartTick)
+    ).apply(instance, (started, paused, startTick, totalPausedTicks, pauseStartTick) -> {
+        SpeedrunState state = new SpeedrunState();
+        state.started = started;
+        state.paused = paused;
+        state.startTick = startTick;
+        state.totalPausedTicks = totalPausedTicks;
+        state.pauseStartTick = pauseStartTick;
+        return state;
+    }));
+
+    public static final SavedDataType<SpeedrunState> TYPE = new SavedDataType<>(
+            Identifier.fromNamespaceAndPath("speedrunpp", "state"),
+            SpeedrunState::new,
+            CODEC,
+            null
+    );
 
     public SpeedrunState() {
     }
 
     public static SpeedrunState get(MinecraftServer server) {
         ServerLevel level = server.overworld();
-        return level.getDataStorage().computeIfAbsent(
-                new SavedData.Factory<>(SpeedrunState::new, SpeedrunState::load),
-                "speedrunpp_state"
-        );
-    }
-
-    public static SpeedrunState load(CompoundTag tag, HolderLookup.Provider registries) {
-        SpeedrunState state = new SpeedrunState();
-        state.started = tag.getBoolean("started");
-        state.paused = tag.getBoolean("paused");
-        state.startTick = tag.getLong("startTick");
-        state.totalPausedTicks = tag.getLong("totalPausedTicks");
-        state.pauseStartTick = tag.getLong("pauseStartTick");
-        return state;
-    }
-
-    @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        tag.putBoolean("started", started);
-        tag.putBoolean("paused", paused);
-        tag.putLong("startTick", startTick);
-        tag.putLong("totalPausedTicks", totalPausedTicks);
-        tag.putLong("pauseStartTick", pauseStartTick);
-        return tag;
+        return level.getDataStorage().computeIfAbsent(TYPE);
     }
 
     public boolean isStarted() {
@@ -124,11 +125,10 @@ public class SpeedrunState extends SavedData {
 
     private void setWorldFrozen(MinecraftServer server, boolean frozen) {
         GameRules gameRules = server.getGameRules();
-        gameRules.getRule(GameRules.RULE_DAYLIGHT).set(!frozen, server);
-        gameRules.getRule(GameRules.RULE_DOMOBSPAWNING).set(!frozen, server);
-        gameRules.getRule(GameRules.RULE_DOFIRETICK).set(!frozen, server);
-        gameRules.getRule(GameRules.RULE_WEATHER_CYCLE).set(!frozen, server);
-        gameRules.getRule(GameRules.RULE_RANDOMTICKING).set(frozen ? 0 : 3, server);
+        gameRules.set(GameRules.ADVANCE_TIME, !frozen, server);
+        gameRules.set(GameRules.SPAWN_MOBS, !frozen, server);
+        gameRules.set(GameRules.ADVANCE_WEATHER, !frozen, server);
+        gameRules.set(GameRules.RANDOM_TICK_SPEED, frozen ? 0 : 3, server);
     }
 
     public UUID getTrackerTarget(UUID playerUuid) {

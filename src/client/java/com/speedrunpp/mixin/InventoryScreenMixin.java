@@ -4,7 +4,7 @@ import com.speedrunpp.client.SpeedrunClientState;
 import com.speedrunpp.network.payload.SpeedrunActionC2SPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -79,8 +79,8 @@ public abstract class InventoryScreenMixin extends AbstractContainerScreen<Inven
         speedrunpp$updateButtonVisibility();
     }
 
-    @Inject(method = "render", at = @At("TAIL"))
-    private void speedrunpp$updateButtons(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    @Inject(method = "extractRenderState", at = @At("TAIL"))
+    private void speedrunpp$updateButtons(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         speedrunpp$updateButtonVisibility();
     }
 

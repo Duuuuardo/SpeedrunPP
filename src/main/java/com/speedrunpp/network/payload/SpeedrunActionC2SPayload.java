@@ -13,7 +13,7 @@ public record SpeedrunActionC2SPayload(int action) implements CustomPacketPayloa
     public static final int ACTION_RESET = 3;
 
     public static final CustomPacketPayload.Type<SpeedrunActionC2SPayload> ID =
-            new CustomPacketPayload.Type<>(Identifier.of("speedrunpp", "speedrun_action"));
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("speedrunpp", "speedrun_action"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SpeedrunActionC2SPayload> CODEC =
             StreamCodec.composite(

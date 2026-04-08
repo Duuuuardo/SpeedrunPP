@@ -8,7 +8,7 @@ import net.minecraft.resources.Identifier;
 
 public record SpeedrunSyncS2CPayload(boolean started, boolean paused, long elapsedTicks, int days) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<SpeedrunSyncS2CPayload> ID =
-            new CustomPacketPayload.Type<>(Identifier.of("speedrunpp", "speedrun_sync"));
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("speedrunpp", "speedrun_sync"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SpeedrunSyncS2CPayload> CODEC =
             StreamCodec.composite(

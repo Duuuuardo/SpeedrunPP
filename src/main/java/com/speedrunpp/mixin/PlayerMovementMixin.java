@@ -18,9 +18,9 @@ public class PlayerMovementMixin {
 
     @Inject(method = "handleMovePlayer", at = @At("HEAD"), cancellable = true)
     private void speedrunpp$preventMovement(ServerboundMovePlayerPacket packet, CallbackInfo ci) {
-        if (player.getServer() == null) return;
+        if (player.level().getServer() == null) return;
 
-        SpeedrunState state = SpeedrunState.get(player.getServer());
+        SpeedrunState state = SpeedrunState.get(player.level().getServer());
         if (!state.isRunning()) {
             // Reset player position to prevent desync
             player.connection.teleport(

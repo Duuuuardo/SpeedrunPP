@@ -11,7 +11,7 @@ import java.util.List;
 
 public record PlayerPositionS2CPayload(List<PlayerPositionData> positions) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<PlayerPositionS2CPayload> ID =
-            new CustomPacketPayload.Type<>(Identifier.of("speedrunpp", "player_positions"));
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("speedrunpp", "player_positions"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PlayerPositionS2CPayload> CODEC =
             new StreamCodec<>() {

@@ -11,15 +11,15 @@ import net.minecraft.world.item.Rarity;
 public class ModItems {
     public static final Item PLAYER_TRACKER = Registry.register(
             BuiltInRegistries.ITEM,
-            Identifier.of("speedrunpp", "player_tracker"),
+            Identifier.fromNamespaceAndPath("speedrunpp", "player_tracker"),
             new PlayerTrackerCompassItem(new Item.Properties()
                     .stacksTo(1)
                     .rarity(Rarity.UNCOMMON))
     );
 
     public static void register() {
-        CreativeModeTabEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(entries -> {
-            entries.accept(PLAYER_TRACKER);
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(output -> {
+            output.accept(PLAYER_TRACKER);
         });
     }
 }

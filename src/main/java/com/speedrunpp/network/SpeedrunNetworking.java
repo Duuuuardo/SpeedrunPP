@@ -24,8 +24,7 @@ public class SpeedrunNetworking {
     public static void registerServerReceivers() {
         ServerPlayNetworking.registerGlobalReceiver(SpeedrunActionC2SPayload.ID, (payload, context) -> {
             ServerPlayer player = context.player();
-            MinecraftServer server = player.getServer();
-            if (server == null) return;
+            MinecraftServer server = context.server();
 
             SpeedrunState state = SpeedrunState.get(server);
 
@@ -71,7 +70,7 @@ public class SpeedrunNetworking {
     }
 
     public static void syncStateToPlayer(ServerPlayer player) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) return;
 
         SpeedrunState state = SpeedrunState.get(server);
@@ -107,7 +106,7 @@ public class SpeedrunNetworking {
 
     private static void broadcastMessage(MinecraftServer server, Component message) {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            player.displayClientMessage(message, true);
+            player.sendSystemMessage(message, true);
         }
     }
 }
