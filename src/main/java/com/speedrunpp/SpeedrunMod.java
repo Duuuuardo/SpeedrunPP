@@ -3,13 +3,14 @@ package com.speedrunpp;
 import com.speedrunpp.item.ModItems;
 import com.speedrunpp.network.SpeedrunNetworking;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +33,8 @@ public class SpeedrunMod implements ModInitializer {
             SpeedrunState state = SpeedrunState.get(server);
             SpeedrunNetworking.syncStateToPlayer(player);
 
-            LOGGER.info("Player {} joined, synced speedrun state (started={}, paused={})",
-                    player.getName().getString(), state.isStarted(), state.isPaused());
+            LOGGER.info("Player {} joined, synced speedrun state (started={}, completed={})",
+                    player.getName().getString(), state.isStarted(), state.isCompleted());
         });
 
         ServerTickEvents.START_SERVER_TICK.register(server -> {
@@ -45,9 +46,9 @@ public class SpeedrunMod implements ModInitializer {
             }
         });
 
-        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
-            if (entity instanceof EnderDragon) {
-                var server = entity.level().getServer();
+        ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> {
+            if (origin.dimension() == Level.END && destination.dimension() == Level.OVERWORLD) {
+                var server = destination.getServer();
                 if (server != null) {
                     SpeedrunState state = SpeedrunState.get(server);
                     if (state.isRunning()) {
